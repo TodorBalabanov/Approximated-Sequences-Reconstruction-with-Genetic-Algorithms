@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,11 @@ public class Main {
 	 * Pseudo-random number generator.
 	 */
 	private static final Random PRNG = new Random();
+
+	/**
+	 * Chunks comparator instance.
+	 */
+	private static final ChunksComparator CHUNKS_COMAPARATOR = new ChunksComparator();
 
 	/**
 	 * Original sequences which should be reconstructed.
@@ -55,6 +62,44 @@ public class Main {
 	 * distribution.
 	 */
 	private static final int HISTOGRAM_THRESHOLD = 10;
+
+	/** How many genetic algorithm generations to be evolved. */
+	private static final int EVOLUTION_EPOCHS = 1000;
+
+	/**
+	 * Sequence chunks comparator.
+	 * 
+	 * @author Todor Balabanov
+	 */
+	private static class ChunksComparator implements Comparator<List<Integer>> {
+		@Override
+		public int compare(List<Integer> first, List<Integer> second) {
+			if (first == null) {
+				throw new RuntimeException(
+						"First chunks should not be null pointer!");
+			}
+
+			if (second == null) {
+				throw new RuntimeException(
+						"Second chunks should not be null pointer!");
+			}
+
+			if (first.size() != second.size()) {
+				throw new RuntimeException("Chunks should be with equal size!");
+			}
+
+			int size = Math.min(first.size(), second.size());
+			for (int i = 0; i < size; i++) {
+				if (first.get(i) - second.get(i) == 0) {
+					continue;
+				}
+
+				return first.get(i) - second.get(i);
+			}
+
+			return 0;
+		}
+	}
 
 	/**
 	 * Genetic algorithm chromosome representation.
@@ -128,7 +173,7 @@ public class Main {
 			this.chunks = chunks;
 
 			/* Chunks should be sorted when fitness value is estimated. */
-			// TODO Collections.sort(chunks);
+			Collections.sort(chunks, CHUNKS_COMAPARATOR);
 		}
 
 		/**
@@ -152,8 +197,8 @@ public class Main {
 
 		@Override
 		public String toString() {
-			return "Chromosome [sequence=" + sequence + ", chunks=" + chunks
-					+ ", fitness=" + fitness + "]";
+			return "Chromosome [sequence=" + Arrays.toString(sequence)
+					+ ", chunks=" + chunks + ", fitness=" + fitness + "]";
 		}
 
 	}
@@ -236,7 +281,7 @@ public class Main {
 		for (int reel[] : ORIGINAL_STRIPS) {
 			Chromosome original = initializeOriginal(reel, CHUNKS_SIZE,
 					HISTOGRAM_THRESHOLD);
-			System.out.println(original);
+			System.err.println(original);
 		}
 	}
 
