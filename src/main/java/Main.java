@@ -3,9 +3,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Application single entry point class.
@@ -52,6 +54,11 @@ public class Main {
 	 * Chunk size is related with the size of the visible part of the sequence.
 	 */
 	private static final int CHUNKS_SIZE = 3;
+
+	/**
+	 * Genetic algorithm population size.
+	 */
+	private static final int POPULATION_SIZE = 37;
 
 	/**
 	 * The histogram threshold is the minimum number of the appearance of the
@@ -124,15 +131,10 @@ public class Main {
 		private double fitness = 0.0;
 
 		/**
-		 * A constructor used to generate chromosome by getting only the
-		 * sequence. Chunks and fitness are initialized after that.
-		 * 
-		 * @param sequence
-		 *            Sequence represented as a single string.
+		 * Constructor without parameters.
 		 */
-		public Chromosome(int[] sequence) {
+		public Chromosome() {
 			super();
-			this.sequence = sequence;
 		}
 
 		/**
@@ -264,8 +266,77 @@ public class Main {
 			}
 		}
 
-		Chromosome result = new Chromosome(reel);
+		Chromosome result = new Chromosome();
+		result.sequence(reel);
 		result.chunks(chunks);
+
+		return result;
+	}
+
+	/**
+	 * Creates a population from an original sequence pattern.
+	 * 
+	 * @param reel
+	 *            Virtual reel as numbers array.
+	 * 
+	 * @param original
+	 *            The chromosome of the original sequence.
+	 * 
+	 * @param size
+	 *            Size of the population.
+	 * 
+	 * @return Randomly generated population.
+	 */
+	private static List<Chromosome> initializeRandomPopulation(int[] reel,
+			Chromosome original, int size) {
+		List<Chromosome> result = new ArrayList<Chromosome>();
+
+		/* Estimation of the unique chunks amount. */
+		int chunksTotalLength = 0;
+		Set<List<Integer>> unique = new HashSet<List<Integer>>();
+		for (List<Integer> chunk : original.chunks()) {
+			chunksTotalLength += chunk.size();
+			unique.add(chunk);
+		}
+
+		/* Create random initial chromosomes. */
+		for (int i = 0; i < size; i++) {
+			/*
+			 * When sequence size is not known in advance it is difficult to
+			 * guess the real size.
+			 */
+			int sequence[] = new int[chunksTotalLength];
+
+			/*
+			 * Fill the candidate sequence with values from the original chunks.
+			 */
+			for (int j = 0; j < sequence.length; j++) {
+				List<Integer> chunk = original.chunks()
+						.get(PRNG.nextInt(original.chunks().size()));
+				sequence[j] = chunk.get(PRNG.nextInt(chunk.size()));
+			}
+
+			Chromosome candidate = new Chromosome();
+			candidate.sequence(sequence);
+
+			/* Generate chunks for the candidate sequence. */
+			List<List<Integer>> chunks = new ArrayList<List<Integer>>();
+			for (int j = 0; j < original.chunks().size(); j++) {
+				/* Form a single chunk. */
+				List<Integer> chunk = new ArrayList<Integer>();
+				int position = PRNG.nextInt(sequence.length);
+				for (int k = 0; k < original.chunks().get(j).size(); k++) {
+					chunk.add(sequence[(position + k) % sequence.length]);
+				}
+
+				/* Add new chunk to the chunks list. */
+				chunks.add(chunk);
+			}
+			candidate.chunks(chunks);
+
+			/* Add randomly generated chromosome to the population. */
+			result.add(candidate);
+		}
 
 		return result;
 	}
@@ -281,7 +352,11 @@ public class Main {
 		for (int reel[] : ORIGINAL_STRIPS) {
 			Chromosome original = initializeOriginal(reel, CHUNKS_SIZE,
 					HISTOGRAM_THRESHOLD);
-			System.err.println(original);
+			// System.err.println(original);
+
+			List<Chromosome> population = initializeRandomPopulation(reel,
+					original, POPULATION_SIZE);
+			System.err.println(population);
 		}
 	}
 
