@@ -96,10 +96,10 @@ public class Main {
 	 * level of about 95% and according to the rules of the normal probability
 	 * distribution.
 	 */
-	private static final int HISTOGRAM_THRESHOLD = 10;
+	private static final int HISTOGRAM_THRESHOLD = 100;
 
 	/** How many genetic algorithm generations to be evolved. */
-	private static final int EVOLUTION_EPOCHS = 1000;
+	private static final long EVOLUTION_EPOCHS = 10;
 
 	/**
 	 * Genetic algorithm chromosome representation.
@@ -138,19 +138,30 @@ public class Main {
 		 * @return Randomly initialized chromosome.
 		 */
 		public static Chromosome initializeRandom(Chromosome sample) {
-			/* Estimation of the unique chunks amount. */
+			/* Estimation of the unique chunks and unique values amount. */
 			int chunksTotalLength = 0;
-			Set<List<Integer>> unique = new HashSet<List<Integer>>();
+			Set<Integer> uniqueValues = new HashSet<Integer>();
+			Set<List<Integer>> uniqueChunks = new HashSet<List<Integer>>();
 			for (List<Integer> chunk : sample.chunks()) {
 				chunksTotalLength += chunk.size();
-				unique.add(chunk);
+
+				/* Update set of unique chunks. */
+				uniqueChunks.add(chunk);
+
+				for (Integer value : chunk) {
+					/* Update set of unique values. */
+					uniqueValues.add(value);
+				}
 			}
+			// System.err.println(uniqueValues);
 
 			/*
 			 * When sequence size is not known in advance it is difficult to
-			 * guess the real size.
+			 * guess the real size. Random size between the number of unique
+			 * values and total length of the chunks is used.
 			 */
-			int sequence[] = new int[chunksTotalLength];
+			int sequence[] = new int[uniqueValues.size() + PRNG
+					.nextInt(chunksTotalLength - uniqueValues.size() + 1)];
 
 			/*
 			 * Fill the candidate sequence with values from the original chunks.
@@ -160,24 +171,12 @@ public class Main {
 						.get(PRNG.nextInt(sample.chunks().size()));
 				sequence[j] = chunk.get(PRNG.nextInt(chunk.size()));
 			}
+			// System.err.println(Arrays.toString(sequence));
 
+			/* Form chromosome. */
 			Chromosome result = new Chromosome();
 			result.sequence(sequence);
-
-			/* Generate chunks for the candidate sequence. */
-			List<List<Integer>> chunks = new ArrayList<List<Integer>>();
-			for (int j = 0; j < sample.chunks().size(); j++) {
-				/* Form a single chunk. */
-				List<Integer> chunk = new ArrayList<Integer>();
-				int position = PRNG.nextInt(sequence.length);
-				for (int k = 0; k < sample.chunks().get(j).size(); k++) {
-					chunk.add(sequence[(position + k) % sequence.length]);
-				}
-
-				/* Add new chunk to the chunks list. */
-				chunks.add(chunk);
-			}
-			result.chunks(chunks);
+			result.sampling(sample);
 
 			return result;
 		}
@@ -250,6 +249,32 @@ public class Main {
 		}
 
 		/**
+		 * Do sampling from the available sequence with parameters for sampling
+		 * taken from the template chromosome.
+		 * 
+		 * @param sample
+		 *            A sample chromosome which is used during chromosome
+		 *            creation.
+		 */
+		private void sampling(Chromosome sample) {
+			/* Generate chunks for the candidate sequence. */
+			List<List<Integer>> chunks = new ArrayList<List<Integer>>();
+			for (int j = 0; j < sample.chunks().size(); j++) {
+				/* Form a single chunk. */
+				List<Integer> chunk = new ArrayList<Integer>();
+				int position = PRNG.nextInt(sequence.length);
+				for (int k = 0; k < sample.chunks().get(j).size(); k++) {
+					chunk.add(sequence[(position + k) % sequence.length]);
+				}
+
+				/* Add new chunk to the chunks list. */
+				chunks.add(chunk);
+			}
+
+			chunks(chunks);
+		}
+
+		/**
 		 * Calculates the distance between two chromosomes.
 		 * 
 		 * Weighted Euclidean distance between lists of chunks is calculated,
@@ -282,12 +307,16 @@ public class Main {
 				double distance = 0;
 				int chunkSize = Math.min(first.size(), second.size());
 				for (int j = 0; j < chunkSize; j++) {
-					distance += (first.get(j) - second.get(j)) * first.get(j)
-							- second.get(j);
+					distance += (first.get(j) - second.get(j))
+							* (first.get(j) - second.get(j));
 				}
 
+				/* Square root as it is in the Euclidean norm. */
 				result += Math.sqrt(distance);
 			}
+
+			/* Do an average. */
+			result /= listSize;
 
 			return result;
 		}
@@ -397,8 +426,87 @@ public class Main {
 
 		/* Create random initial chromosomes. */
 		for (int i = 0; i < size; i++) {
+			Chromosome candidate = Chromosome.initializeRandom(original);
+
+			/* Evaluate randomly generated chromosome. */
+			candidate.sampling(original);
+			candidate.fitness(-candidate.distance(original));
+
 			/* Add randomly generated chromosome to the population. */
-			result.add(Chromosome.initializeRandom(original));
+			result.add(candidate);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Do selection of parents and a child place into the population.
+	 * 
+	 * @param population
+	 *            Current generation as population of individuals.
+	 * 
+	 * @return Selected parents and children as an array of references.
+	 */
+	private static Chromosome[] selection(List<Chromosome> population) {
+		Chromosome familiy[] = new Chromosome[3];
+		while (true) {
+			familiy[0] = population.get(PRNG.nextInt(population.size()));
+			familiy[1] = population.get(PRNG.nextInt(population.size()));
+			familiy[2] = population.get(PRNG.nextInt(population.size()));
+
+			/* Parent should be different from the child. */
+			if (familiy[0] == familiy[2]) {
+				continue;
+			}
+
+			/* Parent should be different from the child. */
+			if (familiy[1] == familiy[2]) {
+				continue;
+			}
+
+			/* Parents should be different. */
+			if (familiy[0] == familiy[1]) {
+				continue;
+			}
+
+			/*
+			 * Appointed for a child individual in the genetic algorithm
+			 * population will replace the previous one that is why the weakest
+			 * should be selected.
+			 */
+			if (familiy[2].fitness() > familiy[0].fitness()) {
+				continue;
+			}
+			if (familiy[2].fitness() > familiy[1].fitness()) {
+				continue;
+			}
+
+			/*
+			 * If parents are different from the child, different from each
+			 * other, and the weakest is chosen for population removal go on.
+			 */
+			break;
+		}
+
+		return familiy;
+	}
+
+	/**
+	 * Finds the best-found solution.
+	 * 
+	 * @param population
+	 *            Current generation as population of individuals.
+	 * 
+	 * @return A reference to the best-found solution into the population.
+	 */
+	private static Chromosome bestFound(List<Chromosome> population) {
+		Chromosome result = population.get(0);
+
+		/* The best-found solution is the one with the highest fitness value. */
+		for (Chromosome candidate : population) {
+			if (candidate.fitness() > result.fitness()) {
+				result = candidate;
+			}
 		}
 
 		return result;
@@ -419,7 +527,43 @@ public class Main {
 
 			List<Chromosome> population = initializeRandomPopulation(reel,
 					original, POPULATION_SIZE);
-			System.err.println(population);
+			// System.err.println(population);
+
+			/*
+			 * Do an evolutionary optimization. Each loop only a single genetic
+			 * algorithm child is created that is why population size should be
+			 * multiplied by the number of required generations.
+			 */
+			for (long g = EVOLUTION_EPOCHS * population.size(); g > 0; g--) {
+				Chromosome familiy[] = selection(population);
+				Chromosome parent1 = familiy[0];
+				Chromosome parent2 = familiy[0];
+				Chromosome child = familiy[2];
+
+				// TODO Crossover.
+
+				// TODO Mutation.
+
+				/*
+				 * Evaluate fitness value of the newly created child.
+				 * 
+				 * Distance is taken with a negative sign because if the
+				 * candidate solution is farther away from the original the
+				 * solution is worse.
+				 * 
+				 * With such an evaluation of the fitness, all values will be
+				 * negative, but the smallest distance gives the best-found
+				 * candidate solution.
+				 */
+				child.sampling(original);
+				child.fitness(-child.distance(original));
+			}
+
+			/* Print the original. */
+			System.out.println(original);
+
+			/* Print the best-found solution. */
+			System.out.println(bestFound(population));
 		}
 	}
 
