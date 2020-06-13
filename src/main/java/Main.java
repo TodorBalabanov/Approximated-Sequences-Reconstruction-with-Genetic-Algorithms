@@ -21,9 +21,37 @@ public class Main {
 	private static final Random PRNG = new Random();
 
 	/**
-	 * Chunks comparator instance.
+	 * Sequence chunks comparator.
 	 */
-	private static final ChunksComparator CHUNKS_COMAPARATOR = new ChunksComparator();
+	private static final Comparator<List<Integer>> CHUNKS_COMAPARATOR = new Comparator<List<Integer>>() {
+		@Override
+		public int compare(List<Integer> first, List<Integer> second) {
+			if (first == null) {
+				throw new RuntimeException(
+						"First chunks should not be null pointer!");
+			}
+
+			if (second == null) {
+				throw new RuntimeException(
+						"Second chunks should not be null pointer!");
+			}
+
+			if (first.size() != second.size()) {
+				throw new RuntimeException("Chunks should be with equal size!");
+			}
+
+			int size = Math.min(first.size(), second.size());
+			for (int i = 0; i < size; i++) {
+				if (first.get(i) - second.get(i) == 0) {
+					continue;
+				}
+
+				return first.get(i) - second.get(i);
+			}
+
+			return 0;
+		}
+	};
 
 	/**
 	 * Original sequences which should be reconstructed.
@@ -74,46 +102,16 @@ public class Main {
 	private static final int EVOLUTION_EPOCHS = 1000;
 
 	/**
-	 * Sequence chunks comparator.
-	 * 
-	 * @author Todor Balabanov
-	 */
-	private static class ChunksComparator implements Comparator<List<Integer>> {
-		@Override
-		public int compare(List<Integer> first, List<Integer> second) {
-			if (first == null) {
-				throw new RuntimeException(
-						"First chunks should not be null pointer!");
-			}
-
-			if (second == null) {
-				throw new RuntimeException(
-						"Second chunks should not be null pointer!");
-			}
-
-			if (first.size() != second.size()) {
-				throw new RuntimeException("Chunks should be with equal size!");
-			}
-
-			int size = Math.min(first.size(), second.size());
-			for (int i = 0; i < size; i++) {
-				if (first.get(i) - second.get(i) == 0) {
-					continue;
-				}
-
-				return first.get(i) - second.get(i);
-			}
-
-			return 0;
-		}
-	}
-
-	/**
 	 * Genetic algorithm chromosome representation.
 	 * 
 	 * @author Todor Balabanov
 	 */
 	private static class Chromosome {
+		/**
+		 * Pseudo-random number generator.
+		 */
+		private static final Random PRNG = new Random();
+
 		/**
 		 * Optimal sequence candidate.
 		 */
@@ -129,6 +127,60 @@ public class Main {
 		 * process.
 		 */
 		private double fitness = 0.0;
+
+		/**
+		 * Construct randomly generated chromosomes according to a given sample.
+		 * 
+		 * @param sample
+		 *            A sample chromosome which is used during chromosome
+		 *            creation.
+		 * 
+		 * @return Randomly initialized chromosome.
+		 */
+		public static Chromosome initializeRandom(Chromosome sample) {
+			/* Estimation of the unique chunks amount. */
+			int chunksTotalLength = 0;
+			Set<List<Integer>> unique = new HashSet<List<Integer>>();
+			for (List<Integer> chunk : sample.chunks()) {
+				chunksTotalLength += chunk.size();
+				unique.add(chunk);
+			}
+
+			/*
+			 * When sequence size is not known in advance it is difficult to
+			 * guess the real size.
+			 */
+			int sequence[] = new int[chunksTotalLength];
+
+			/*
+			 * Fill the candidate sequence with values from the original chunks.
+			 */
+			for (int j = 0; j < sequence.length; j++) {
+				List<Integer> chunk = sample.chunks()
+						.get(PRNG.nextInt(sample.chunks().size()));
+				sequence[j] = chunk.get(PRNG.nextInt(chunk.size()));
+			}
+
+			Chromosome result = new Chromosome();
+			result.sequence(sequence);
+
+			/* Generate chunks for the candidate sequence. */
+			List<List<Integer>> chunks = new ArrayList<List<Integer>>();
+			for (int j = 0; j < sample.chunks().size(); j++) {
+				/* Form a single chunk. */
+				List<Integer> chunk = new ArrayList<Integer>();
+				int position = PRNG.nextInt(sequence.length);
+				for (int k = 0; k < sample.chunks().get(j).size(); k++) {
+					chunk.add(sequence[(position + k) % sequence.length]);
+				}
+
+				/* Add new chunk to the chunks list. */
+				chunks.add(chunk);
+			}
+			result.chunks(chunks);
+
+			return result;
+		}
 
 		/**
 		 * Constructor without parameters.
@@ -197,6 +249,52 @@ public class Main {
 			this.fitness = fitness;
 		}
 
+		/**
+		 * Calculates the distance between two chromosomes.
+		 * 
+		 * Weighted Euclidean distance between lists of chunks is calculated,
+		 * but other distances may be more proper.
+		 * 
+		 * @param sample
+		 *            Sample chromosome to compare with.
+		 * 
+		 * @return Distance calculated between the two chromosomes.
+		 */
+		public double distance(Chromosome sample) {
+			/* Chunks lists should be with equal length. */
+			if (chunks.size() != sample.chunks.size()) {
+				throw new RuntimeException(
+						"The distance can be calculated only between lists of chunks with equal length!");
+			}
+
+			double result = 0;
+			int listSize = Math.min(chunks.size(), sample.chunks.size());
+			for (int i = 0; i < listSize; i++) {
+				List<Integer> first = chunks.get(i);
+				List<Integer> second = sample.chunks.get(i);
+
+				/* Chunks lists should be with equal length. */
+				if (first.size() != second.size()) {
+					throw new RuntimeException(
+							"Chunks should be with equal sizes!");
+				}
+
+				double distance = 0;
+				int chunkSize = Math.min(first.size(), second.size());
+				for (int j = 0; j < chunkSize; j++) {
+					distance += (first.get(j) - second.get(j)) * first.get(j)
+							- second.get(j);
+				}
+
+				result += Math.sqrt(distance);
+			}
+
+			return result;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public String toString() {
 			return "Chromosome [sequence=" + Arrays.toString(sequence)
@@ -257,11 +355,17 @@ public class Main {
 				}
 			}
 		}
+		// System.err.println(histogram);
 
 		/* Form list of chunks according the amount of their appearance. */
 		List<List<Integer>> chunks = new ArrayList<List<Integer>>();
 		for (List<Integer> chunk : histogram.keySet()) {
-			for (int count = histogram.get(chunk); count > 0; count--) {
+			/*
+			 * The count is reduced in order sequences for chromosomes to be
+			 * shorter.
+			 */
+			for (int count = histogram.get(chunk) - leastProbable
+					+ 1; count > 0; count--) {
 				chunks.add(chunk);
 			}
 		}
@@ -291,51 +395,10 @@ public class Main {
 			Chromosome original, int size) {
 		List<Chromosome> result = new ArrayList<Chromosome>();
 
-		/* Estimation of the unique chunks amount. */
-		int chunksTotalLength = 0;
-		Set<List<Integer>> unique = new HashSet<List<Integer>>();
-		for (List<Integer> chunk : original.chunks()) {
-			chunksTotalLength += chunk.size();
-			unique.add(chunk);
-		}
-
 		/* Create random initial chromosomes. */
 		for (int i = 0; i < size; i++) {
-			/*
-			 * When sequence size is not known in advance it is difficult to
-			 * guess the real size.
-			 */
-			int sequence[] = new int[chunksTotalLength];
-
-			/*
-			 * Fill the candidate sequence with values from the original chunks.
-			 */
-			for (int j = 0; j < sequence.length; j++) {
-				List<Integer> chunk = original.chunks()
-						.get(PRNG.nextInt(original.chunks().size()));
-				sequence[j] = chunk.get(PRNG.nextInt(chunk.size()));
-			}
-
-			Chromosome candidate = new Chromosome();
-			candidate.sequence(sequence);
-
-			/* Generate chunks for the candidate sequence. */
-			List<List<Integer>> chunks = new ArrayList<List<Integer>>();
-			for (int j = 0; j < original.chunks().size(); j++) {
-				/* Form a single chunk. */
-				List<Integer> chunk = new ArrayList<Integer>();
-				int position = PRNG.nextInt(sequence.length);
-				for (int k = 0; k < original.chunks().get(j).size(); k++) {
-					chunk.add(sequence[(position + k) % sequence.length]);
-				}
-
-				/* Add new chunk to the chunks list. */
-				chunks.add(chunk);
-			}
-			candidate.chunks(chunks);
-
 			/* Add randomly generated chromosome to the population. */
-			result.add(candidate);
+			result.add(Chromosome.initializeRandom(original));
 		}
 
 		return result;
