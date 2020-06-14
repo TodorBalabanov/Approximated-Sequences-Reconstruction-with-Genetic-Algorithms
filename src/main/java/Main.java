@@ -672,7 +672,7 @@ public class Main {
 				population.add(child);
 
 				/* Report optimization progress at each generation. */
-				if (g % EVOLUTION_EPOCHS == 0) {
+				if (g % population.size() == 0) {
 					System.err.println(bestFound(population).fitness());
 				}
 			}
