@@ -1,4 +1,4 @@
-# Approximated Sequences Reconstruction with Genetic Algorithms
+# Approximated Sequences Reconstruction with Genetic Algorithms [![Build Status](https://travis-ci.org/TodorBalabanov/Approximated-Sequences-Reconstruction-with-Genetic-Algorithms.svg?branch=master)](https://travis-ci.org/TodorBalabanov/Approximated-Sequences-Reconstruction-with-Genetic-Algorithms)
 
 It is an approximate slot machine reels reconstruction done with genetic algorithms.
 
