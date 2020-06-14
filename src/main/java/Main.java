@@ -21,37 +21,35 @@ public class Main {
 	private static final Random PRNG = new Random();
 
 	/**
-	 * Sequence chunks comparator.
+	 * Chunk size is related with the size of the visible part of the sequence.
 	 */
-	private static final Comparator<List<Integer>> CHUNKS_COMAPARATOR = new Comparator<List<Integer>>() {
-		@Override
-		public int compare(List<Integer> first, List<Integer> second) {
-			if (first == null) {
-				throw new RuntimeException(
-						"First chunks should not be null pointer!");
-			}
+	private static final int CHUNKS_SIZE = 3;
 
-			if (second == null) {
-				throw new RuntimeException(
-						"Second chunks should not be null pointer!");
-			}
+	/**
+	 * Genetic algorithm population size.
+	 */
+	private static final int POPULATION_SIZE = 137;
 
-			if (first.size() != second.size()) {
-				throw new RuntimeException("Chunks should be with equal size!");
-			}
+	/**
+	 * The mutation rate shows the probability for each gene to mutate. Because
+	 * it is a probability it has values from 0 to 1.
+	 */
+	private static final double MUTATION_RATE = 0.005;
 
-			int size = Math.min(first.size(), second.size());
-			for (int i = 0; i < size; i++) {
-				if (first.get(i) - second.get(i) == 0) {
-					continue;
-				}
+	/**
+	 * The histogram threshold is the minimum number of the appearance of the
+	 * less probable unique chunk. When the size of the sequence is unknown by
+	 * estimating the less probable unique chunk appearance the amount of chunks
+	 * sample can be estimated.This estimation should be done with confidence
+	 * level of about 95% and according to the rules of the normal probability
+	 * distribution.
+	 */
+	private static final int HISTOGRAM_THRESHOLD = 100;
 
-				return first.get(i) - second.get(i);
-			}
-
-			return 0;
-		}
-	};
+	/**
+	 * How many genetic algorithm generations to be evolved.
+	 */
+	private static final long EVOLUTION_EPOCHS = 1000;
 
 	/**
 	 * Original sequences which should be reconstructed.
@@ -79,38 +77,67 @@ public class Main {
 					3, 5, 5},};
 
 	/**
-	 * Chunk size is related with the size of the visible part of the sequence.
-	 */
-	private static final int CHUNKS_SIZE = 3;
-
-	/**
-	 * Genetic algorithm population size.
-	 */
-	private static final int POPULATION_SIZE = 37;
-
-	/**
-	 * The histogram threshold is the minimum number of the appearance of the
-	 * less probable unique chunk. When the size of the sequence is unknown by
-	 * estimating the less probable unique chunk appearance the amount of chunks
-	 * sample can be estimated.This estimation should be done with confidence
-	 * level of about 95% and according to the rules of the normal probability
-	 * distribution.
-	 */
-	private static final int HISTOGRAM_THRESHOLD = 100;
-
-	/** How many genetic algorithm generations to be evolved. */
-	private static final long EVOLUTION_EPOCHS = 10;
-
-	/**
 	 * Genetic algorithm chromosome representation.
 	 * 
 	 * @author Todor Balabanov
 	 */
 	private static class Chromosome {
+
+		/**
+		 * Sequence chunks comparator.
+		 */
+		private static final Comparator<List<Integer>> CHUNKS_COMAPARATOR = new Comparator<List<Integer>>() {
+			@Override
+			public int compare(List<Integer> first, List<Integer> second) {
+				if (first == null) {
+					throw new RuntimeException(
+							"First chunks should not be null pointer!");
+				}
+
+				if (second == null) {
+					throw new RuntimeException(
+							"Second chunks should not be null pointer!");
+				}
+
+				if (first.size() != second.size()) {
+					throw new RuntimeException(
+							"Chunks should be with equal size!");
+				}
+
+				int size = Math.min(first.size(), second.size());
+				for (int i = 0; i < size; i++) {
+					if (first.get(i) - second.get(i) == 0) {
+						continue;
+					}
+
+					return first.get(i) - second.get(i);
+				}
+
+				return 0;
+			}
+		};
+
 		/**
 		 * Pseudo-random number generator.
 		 */
 		private static final Random PRNG = new Random();
+
+		/**
+		 * Chunks histogram is used to estimate how often chunks are met in the
+		 * original sequence. This estimation is very useful for estimating how
+		 * many chunks to be presented in the original chromosome.
+		 */
+		private static Map<List<Integer>, Integer> histogram = new HashMap<List<Integer>, Integer>();
+
+		/**
+		 * Chromosome minimal length.
+		 */
+		private static int minLength = 0;
+
+		/**
+		 * Chromosome maximal length.
+		 */
+		private static int maxLength = 0;
 
 		/**
 		 * Optimal sequence candidate.
@@ -129,20 +156,85 @@ public class Main {
 		private double fitness = 0.0;
 
 		/**
-		 * Construct randomly generated chromosomes according to a given sample.
+		 * Creates a chromosome from an original sequence pattern.
 		 * 
-		 * @param sample
-		 *            A sample chromosome which is used during chromosome
-		 *            creation.
+		 * @param reel
+		 *            Pattern as numbers.
 		 * 
-		 * @return Randomly initialized chromosome.
+		 * @param chunkSize
+		 *            The size of the chunks represented in the chromosome.
+		 * 
+		 * @param histogramThreshold
+		 *            Minimum count of the least probable chunk from the sample.
+		 * 
+		 * @return An original reel chromosome representation.
 		 */
-		public static Chromosome initializeRandom(Chromosome sample) {
+		public static Chromosome initializeOriginal(int[] reel, int chunkSize,
+				int histogramThreshold) {
+			/* Build a chunks histogram. */
+			int leastProbable = 0;
+			histogram = new HashMap<List<Integer>, Integer>();
+			while (leastProbable < histogramThreshold) {
+				/* Form a single chunk. */
+				List<Integer> chunk = new ArrayList<Integer>();
+				int position = PRNG.nextInt(reel.length);
+				for (int i = 0; i < chunkSize; i++) {
+					chunk.add(reel[(position + i) % reel.length]);
+				}
+
+				/*
+				 * If the chunk is not presented it appears for the first time
+				 * in the current sample.
+				 */
+				if (histogram.containsKey(chunk) == false) {
+					/*
+					 * If the chunk is not presented it appears for the first
+					 * time in the current sample.
+					 */
+					leastProbable = 1;
+					histogram.put(chunk, 1);
+				} else {
+					/*
+					 * If the chunk is presented its counter should be
+					 * increased.
+					 */
+					int count = histogram.get(chunk) + 1;
+					histogram.put(chunk, count);
+
+					/* Check what is the current least probable chunk. */
+					leastProbable = Integer.MAX_VALUE;
+					for (List<Integer> key : histogram.keySet()) {
+						if (histogram.get(key) < leastProbable) {
+							leastProbable = histogram.get(key);
+						}
+					}
+				}
+			}
+			// System.err.println(histogram);
+
+			/* Form list of chunks according the amount of their appearance. */
+			List<List<Integer>> chunks = new ArrayList<List<Integer>>();
+			for (List<Integer> chunk : histogram.keySet()) {
+				/*
+				 * The count is reduced in order sequences for chromosomes to be
+				 * shorter.
+				 */
+				for (int count = histogram.get(chunk) - leastProbable
+						+ 1; count > 0; count--) {
+					chunks.add(chunk);
+				}
+			}
+
+			/* Create and initialize original. */
+			Chromosome result = new Chromosome();
+			result.sequence(reel);
+			result.chunks(chunks);
+
 			/* Estimation of the unique chunks and unique values amount. */
 			int chunksTotalLength = 0;
 			Set<Integer> uniqueValues = new HashSet<Integer>();
 			Set<List<Integer>> uniqueChunks = new HashSet<List<Integer>>();
-			for (List<Integer> chunk : sample.chunks()) {
+			for (List<Integer> chunk : result.chunks()) {
 				chunksTotalLength += chunk.size();
 
 				/* Update set of unique chunks. */
@@ -153,23 +245,36 @@ public class Main {
 					uniqueValues.add(value);
 				}
 			}
+			minLength = uniqueValues.size();
+			maxLength = chunksTotalLength;
 			// System.err.println(uniqueValues);
 
+			return result;
+		}
+
+		/**
+		 * Construct randomly generated chromosomes according to a given sample.
+		 * 
+		 * @param sample
+		 *            A sample chromosome which is used during chromosome
+		 *            creation.
+		 * 
+		 * @return Randomly initialized chromosome.
+		 */
+		public static Chromosome initializeRandom(Chromosome sample) {
 			/*
 			 * When sequence size is not known in advance it is difficult to
 			 * guess the real size. Random size between the number of unique
 			 * values and total length of the chunks is used.
 			 */
-			int sequence[] = new int[uniqueValues.size() + PRNG
-					.nextInt(chunksTotalLength - uniqueValues.size() + 1)];
+			int sequence[] = new int[minLength
+					+ PRNG.nextInt(maxLength - minLength + 1)];
 
 			/*
 			 * Fill the candidate sequence with values from the original chunks.
 			 */
 			for (int j = 0; j < sequence.length; j++) {
-				List<Integer> chunk = sample.chunks()
-						.get(PRNG.nextInt(sample.chunks().size()));
-				sequence[j] = chunk.get(PRNG.nextInt(chunk.size()));
+				sequence[j] = sample.randomValue();
 			}
 			// System.err.println(Arrays.toString(sequence));
 
@@ -249,6 +354,16 @@ public class Main {
 		}
 
 		/**
+		 * Provides random value from the chunks.
+		 * 
+		 * @return Randomly selected value from a randomly selected chunk.
+		 */
+		private int randomValue() {
+			List<Integer> chunk = chunks().get(PRNG.nextInt(chunks().size()));
+			return chunk.get(PRNG.nextInt(chunk.size()));
+		}
+
+		/**
 		 * Do sampling from the available sequence with parameters for sampling
 		 * taken from the template chromosome.
 		 * 
@@ -322,6 +437,66 @@ public class Main {
 		}
 
 		/**
+		 * Chromosome mutation with a certain probability and source of mutation
+		 * information.
+		 * 
+		 * @param sample
+		 *            Source of mutation information.
+		 * 
+		 * @param rate
+		 *            Mutation rate between 0 and 1.
+		 */
+		public void mutate(Chromosome sample, double rate) {
+			for (List<Integer> chunk : chunks()) {
+				for (int i = 0; i < chunk.size(); i++) {
+					if (PRNG.nextDouble() >= rate) {
+						continue;
+					}
+
+					/* Mutate only with the proper rate. */
+					chunk.set(i, sample.randomValue());
+				}
+			}
+		}
+
+		/**
+		 * Crossover with a mate.
+		 * 
+		 * @param mate
+		 *            Mating chromosome.
+		 * 
+		 * @return Child chromosome after mating.
+		 */
+		public Chromosome crossover(Chromosome mate) {
+			/* Mating threshold is around half of the genes. */
+			double threshold = 0.5 + PRNG.nextGaussian() * 0.2;
+
+			/* Child has variable length. */
+			int sequence[] = new int[minLength
+					+ PRNG.nextInt(maxLength - minLength + 1)];
+
+			/*
+			 * Fill the candidate sequence with values from the original chunks.
+			 */
+			int[] first = sequence();
+			int[] second = mate.sequence();
+			for (int i = 0; i < sequence.length; i++) {
+				if (PRNG.nextDouble() < threshold) {
+					sequence[i] = first[i % first.length];
+				} else {
+					sequence[i] = second[i % second.length];
+				}
+			}
+			// System.err.println(Arrays.toString(sequence));
+
+			/* Form chromosome. */
+			Chromosome result = new Chromosome();
+			result.sequence(sequence);
+
+			return result;
+		}
+
+		/**
 		 * {@inheritDoc}
 		 */
 		@Override
@@ -330,80 +505,6 @@ public class Main {
 					+ ", chunks=" + chunks + ", fitness=" + fitness + "]";
 		}
 
-	}
-
-	/**
-	 * Creates a chromosome from an original sequence pattern.
-	 * 
-	 * @param reel
-	 *            Pattern as numbers.
-	 * 
-	 * @param chunkSize
-	 *            The size of the chunks represented in the chromosome.
-	 * 
-	 * @param histogramThreshold
-	 *            Minimum count of the least probable chunk from the sample.
-	 * 
-	 * @return An original reel chromosome representation.
-	 */
-	private static Chromosome initializeOriginal(int[] reel, int chunkSize,
-			int histogramThreshold) {
-		/* Build a chunks histogram. */
-		int leastProbable = 0;
-		Map<List<Integer>, Integer> histogram = new HashMap<List<Integer>, Integer>();
-		while (leastProbable < histogramThreshold) {
-			/* Form a single chunk. */
-			List<Integer> chunk = new ArrayList<Integer>();
-			int position = PRNG.nextInt(reel.length);
-			for (int i = 0; i < chunkSize; i++) {
-				chunk.add(reel[(position + i) % reel.length]);
-			}
-
-			/*
-			 * If the chunk is not presented it appears for the first time in
-			 * the current sample.
-			 */
-			if (histogram.containsKey(chunk) == false) {
-				/*
-				 * If the chunk is not presented it appears for the first time
-				 * in the current sample.
-				 */
-				leastProbable = 1;
-				histogram.put(chunk, 1);
-			} else {
-				/* If the chunk is presented its counter should be increased. */
-				int count = histogram.get(chunk) + 1;
-				histogram.put(chunk, count);
-
-				/* Check what is the current least probable chunk. */
-				leastProbable = Integer.MAX_VALUE;
-				for (List<Integer> key : histogram.keySet()) {
-					if (histogram.get(key) < leastProbable) {
-						leastProbable = histogram.get(key);
-					}
-				}
-			}
-		}
-		// System.err.println(histogram);
-
-		/* Form list of chunks according the amount of their appearance. */
-		List<List<Integer>> chunks = new ArrayList<List<Integer>>();
-		for (List<Integer> chunk : histogram.keySet()) {
-			/*
-			 * The count is reduced in order sequences for chromosomes to be
-			 * shorter.
-			 */
-			for (int count = histogram.get(chunk) - leastProbable
-					+ 1; count > 0; count--) {
-				chunks.add(chunk);
-			}
-		}
-
-		Chromosome result = new Chromosome();
-		result.sequence(reel);
-		result.chunks(chunks);
-
-		return result;
 	}
 
 	/**
@@ -521,8 +622,8 @@ public class Main {
 	public static void main(String[] args) {
 		/* Handle each virtual separate. */
 		for (int reel[] : ORIGINAL_STRIPS) {
-			Chromosome original = initializeOriginal(reel, CHUNKS_SIZE,
-					HISTOGRAM_THRESHOLD);
+			Chromosome original = Chromosome.initializeOriginal(reel,
+					CHUNKS_SIZE, HISTOGRAM_THRESHOLD);
 			// System.err.println(original);
 
 			List<Chromosome> population = initializeRandomPopulation(reel,
@@ -535,14 +636,22 @@ public class Main {
 			 * multiplied by the number of required generations.
 			 */
 			for (long g = EVOLUTION_EPOCHS * population.size(); g > 0; g--) {
+				/* Select parents and a child slot. */
 				Chromosome familiy[] = selection(population);
-				Chromosome parent1 = familiy[0];
-				Chromosome parent2 = familiy[0];
-				Chromosome child = familiy[2];
 
-				// TODO Crossover.
+				/* Stronger parent is the first one. */
+				Chromosome parent1 = (familiy[0].fitness() > familiy[1]
+						.fitness()) ? familiy[0] : familiy[1];
+				Chromosome parent2 = (familiy[0].fitness() < familiy[1]
+						.fitness()) ? familiy[0] : familiy[1];
 
-				// TODO Mutation.
+				/* Crossover between parents. */
+				Chromosome child = parent1.crossover(parent2);
+
+				/*
+				 * Mutation done according to original chunks available values.
+				 */
+				child.mutate(original, MUTATION_RATE);
 
 				/*
 				 * Evaluate fitness value of the newly created child.
@@ -557,6 +666,10 @@ public class Main {
 				 */
 				child.sampling(original);
 				child.fitness(-child.distance(original));
+
+				/* The new generation replaces the old generation. */
+				population.remove(familiy[2]);
+				population.add(child);
 			}
 
 			/* Print the original. */
