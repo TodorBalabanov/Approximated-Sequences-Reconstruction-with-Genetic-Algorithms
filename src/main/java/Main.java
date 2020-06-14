@@ -670,6 +670,11 @@ public class Main {
 				/* The new generation replaces the old generation. */
 				population.remove(familiy[2]);
 				population.add(child);
+
+				/* Report optimization progress at each generation. */
+				if (g % EVOLUTION_EPOCHS == 0) {
+					System.err.println(bestFound(population).fitness());
+				}
 			}
 
 			/* Print the original. */
