@@ -668,8 +668,10 @@ public class Main {
 				child.fitness(-child.distance(original));
 
 				/* The new generation replaces the old generation. */
-				population.remove(familiy[2]);
-				population.add(child);
+				if(child.fitness() > familiy[2].fitness()) {
+					population.remove(familiy[2]);
+					population.add(child);
+				}
 
 				/* Report optimization progress at each generation. */
 				if (g % population.size() == 0) {
