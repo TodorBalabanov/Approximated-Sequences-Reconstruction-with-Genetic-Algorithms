@@ -49,12 +49,12 @@ public class Main {
 	/**
 	 * How many genetic algorithm generations to be evolved.
 	 */
-	private static final long EVOLUTION_EPOCHS = 1000;
+	private static final long EVOLUTION_EPOCHS = 100;
 
 	/**
 	 * Original sequences which should be reconstructed.
 	 */
-	private static final int[][] ORIGINAL_STRIPS = {
+	private static final int[][][] ORIGINAL_STRIPS = {{
 			{3, 7, 4, 7, 11, 12, 6, 11, 7, 7, 9, 4, 10, 12, 7, 7, 5, 9, 8, 1, 9,
 					8, 10, 9, 7, 5, 5, 7, 9, 10, 10, 12, 6, 6, 10, 10, 8, 11, 8,
 					7, 4, 3, 5, 12, 6, 9, 8, 1, 9, 8, 9, 8, 4, 3, 11, 11, 7, 9,
@@ -74,7 +74,168 @@ public class Main {
 			{10, 3, 5, 3, 10, 8, 10, 7, 5, 6, 5, 5, 7, 3, 10, 3, 4, 8, 3, 12, 5,
 					4, 3, 8, 10, 4, 6, 3, 9, 8, 10, 10, 5, 10, 6, 3, 8, 5, 8, 8,
 					4, 5, 5, 7, 3, 4, 6, 6, 5, 3, 3, 5, 6, 3, 3, 12, 5, 4, 4, 3,
-					3, 5, 5},};
+					3, 5, 5},},
+
+			{{7, 7, 4, 16, 3, 12, 6, 9, 7, 3, 9, 10, 10, 3, 7, 3, 7, 5, 8, 8, 9,
+					8, 3, 9, 7, 3, 11, 16, 9, 10, 10, 3, 6, 6, 10, 16, 8, 8, 8,
+					7, 10, 12, 4, 4, 6, 8, 4, 8, 7, 8, 9, 8, 10, 7, 11, 9, 7, 9,
+					8, 9, 7, 4, 4},
+					{12, 9, 4, 11, 9, 8, 1, 9, 8, 5, 3, 11, 3, 7, 7, 8, 11, 3,
+							3, 6, 6, 6, 8, 10, 4, 12, 7, 6, 3, 4, 10, 4, 5, 3,
+							8, 8, 4, 12, 12, 9, 8, 1, 9, 8, 7, 7, 12, 4, 11, 5,
+							10, 12, 11, 8, 8, 9, 9, 9, 10, 7, 11, 11, 10},
+					{8, 11, 10, 7, 9, 11, 5, 5, 3, 7, 11, 3, 8, 8, 5, 11, 11, 6,
+							7, 11, 5, 6, 11, 12, 5, 12, 7, 10, 10, 10, 8, 8, 8,
+							6, 6, 6, 7, 10, 9, 10, 10, 6, 10, 10, 9, 7, 7, 4,
+							10, 9, 10, 8, 10, 10, 10, 5, 9, 5, 10, 9, 10, 10,
+							10},
+					{8, 8, 7, 9, 10, 6, 5, 11, 5, 9, 3, 12, 7, 12, 7, 7, 9, 12,
+							10, 6, 8, 8, 12, 7, 9, 11, 12, 6, 6, 8, 8, 8, 7, 16,
+							4, 4, 4, 9, 8, 10, 3, 5, 12, 8, 4, 9, 3, 11, 9, 10,
+							16, 7, 11, 11, 6, 10, 12, 3, 3, 10, 5, 11, 5},
+					{10, 3, 8, 8, 10, 8, 10, 7, 9, 6, 8, 8, 7, 3, 10, 9, 10, 8,
+							8, 12, 5, 4, 10, 4, 10, 8, 12, 10, 3, 3, 12, 10, 5,
+							10, 6, 11, 8, 11, 11, 8, 8, 10, 10, 7, 11, 4, 3, 11,
+							11, 3, 3, 12, 6, 12, 3, 12, 10, 4, 12, 11, 11, 11,
+							12},},
+
+			{{16, 7, 7, 16, 10, 12, 16, 9, 7, 16, 11, 4, 16, 12, 7, 16, 7, 12,
+					16, 7, 10, 16, 10, 9, 16, 11, 12, 16, 7, 10, 16, 12, 6, 16,
+					10, 10, 16, 8, 7, 16, 4, 12, 16, 12, 7, 16, 10, 10, 16, 10,
+					12, 16, 12, 8, 16, 8, 7, 16, 12, 12, 16, 11, 11},
+					{9, 8, 16, 3, 8, 16, 5, 8, 16, 5, 9, 16, 8, 9, 16, 8, 9, 16,
+							8, 9, 16, 8, 8, 16, 3, 9, 16, 6, 4, 16, 4, 4, 16, 3,
+							3, 16, 8, 3, 16, 6, 9, 16, 4, 7, 16, 3, 4, 16, 4, 5,
+							16, 4, 3, 16, 9, 9, 16, 9, 3, 16, 4, 3, 16},
+					{10, 10, 12, 11, 8, 11, 8, 12, 12, 6, 9, 12, 11, 7, 12, 7,
+							12, 3, 10, 9, 10, 8, 8, 12, 5, 4, 10, 4, 10, 8, 12,
+							10, 9, 12, 11, 10, 5, 10, 6, 11, 8, 8, 3, 7, 8, 8,
+							11, 11, 11, 6, 7, 6, 11, 16, 12, 12, 7, 6, 11, 7, 4,
+							10, 7},
+					{9, 12, 16, 11, 7, 16, 5, 5, 16, 5, 11, 16, 3, 7, 16, 7, 11,
+							16, 11, 6, 16, 6, 12, 16, 12, 12, 16, 6, 11, 16, 10,
+							8, 16, 11, 8, 16, 8, 12, 16, 6, 9, 16, 12, 7, 16, 7,
+							12, 16, 11, 5, 16, 12, 11, 16, 11, 8, 16, 9, 10, 16,
+							6, 12, 16},
+					{10, 3, 8, 8, 8, 8, 10, 7, 9, 6, 8, 8, 7, 3, 10, 9, 10, 8,
+							8, 12, 5, 4, 10, 4, 10, 8, 12, 10, 9, 12, 12, 10, 5,
+							10, 6, 11, 8, 11, 11, 8, 8, 10, 10, 7, 11, 4, 9, 11,
+							11, 8, 8, 12, 6, 12, 3, 12, 10, 4, 16, 11, 11, 11,
+							12},},
+
+			{{7, 7, 4, 12, 3, 12, 6, 9, 7, 7, 9, 4, 10, 12, 7, 7, 7, 5, 8, 9, 9,
+					8, 10, 9, 7, 11, 11, 12, 9, 10, 10, 12, 6, 6, 10, 8, 8, 8,
+					8, 7, 8, 12, 12, 12, 8, 5, 8, 7, 9, 8, 9, 8, 8, 7, 11, 9, 7,
+					9, 8, 9, 7, 11, 11},
+					{12, 9, 4, 11, 7, 11, 5, 5, 10, 5, 11, 11, 3, 7, 6, 11, 1,
+							6, 11, 6, 6, 6, 16, 10, 12, 12, 7, 6, 11, 1, 6, 11,
+							5, 11, 8, 8, 8, 16, 12, 6, 6, 11, 1, 6, 11, 7, 12,
+							12, 11, 5, 10, 12, 11, 8, 16, 9, 9, 9, 10, 7, 11,
+							11, 10},
+					{8, 11, 10, 7, 9, 11, 12, 8, 8, 7, 11, 3, 8, 8, 11, 11, 11,
+							6, 7, 11, 11, 6, 16, 12, 5, 12, 7, 10, 11, 10, 8, 8,
+							8, 6, 6, 6, 7, 10, 9, 10, 10, 6, 10, 10, 9, 7, 7, 4,
+							10, 9, 10, 8, 10, 16, 10, 5, 12, 12, 10, 9, 10, 10,
+							10},
+					{8, 11, 7, 9, 10, 6, 11, 11, 11, 9, 3, 12, 6, 11, 1, 6, 11,
+							12, 10, 6, 8, 12, 12, 6, 11, 1, 6, 11, 6, 8, 8, 8,
+							7, 7, 4, 4, 4, 9, 8, 10, 3, 5, 12, 8, 4, 9, 11, 11,
+							9, 10, 11, 7, 11, 6, 11, 1, 6, 11, 3, 10, 5, 11,
+							12},
+					{10, 3, 8, 8, 9, 8, 10, 7, 9, 6, 8, 8, 7, 3, 10, 9, 10, 8,
+							8, 12, 5, 4, 10, 4, 10, 8, 12, 10, 9, 12, 11, 10, 5,
+							10, 6, 11, 8, 11, 12, 8, 11, 11, 10, 7, 12, 4, 9,
+							11, 11, 12, 8, 12, 6, 12, 3, 12, 10, 4, 10, 11, 11,
+							11, 12},},
+
+			{{3, 7, 10, 10, 7, 10, 3, 3, 7, 10, 10, 7, 10, 3, 3, 7, 10, 10, 7,
+					10, 3, 3, 7, 10, 10, 7, 10, 3, 3, 7, 10, 10, 7, 10, 3, 3, 7,
+					10, 10, 7, 10, 3, 3, 7, 10, 10, 7, 10, 3, 3, 7, 10, 10, 7,
+					10, 3, 3, 7, 10, 10, 7, 10, 3},
+					{4, 4, 8, 16, 4, 8, 8, 4, 8, 16, 4, 8, 16, 8, 4, 4, 8, 16,
+							4, 8, 8, 4, 8, 16, 4, 8, 16, 8, 4, 4, 8, 16, 4, 8,
+							8, 4, 8, 16, 4, 8, 16, 8, 4, 4, 8, 16, 4, 8, 8, 4,
+							8, 16, 4, 8, 16, 8, 4, 8, 16, 4, 8, 16, 8},
+					{5, 5, 7, 10, 7, 10, 7, 10, 10, 5, 7, 10, 5, 7, 5, 5, 7, 10,
+							7, 10, 7, 10, 10, 5, 7, 10, 5, 7, 5, 5, 7, 10, 7,
+							10, 7, 10, 10, 5, 7, 10, 5, 7, 5, 5, 7, 10, 7, 10,
+							7, 10, 10, 5, 7, 10, 5, 7, 10, 10, 5, 7, 10, 5, 7},
+					{9, 6, 9, 16, 6, 6, 6, 9, 16, 9, 9, 6, 9, 16, 9, 6, 9, 16,
+							6, 6, 6, 9, 16, 9, 9, 6, 9, 16, 9, 6, 9, 16, 6, 6,
+							6, 9, 16, 9, 9, 6, 9, 16, 9, 6, 9, 16, 6, 6, 6, 9,
+							16, 9, 9, 6, 16, 9, 9, 16, 9, 9, 6, 9, 16},
+					{12, 9, 8, 12, 9, 8, 9, 8, 12, 8, 8, 9, 8, 8, 12, 9, 8, 12,
+							9, 8, 9, 8, 12, 8, 8, 9, 8, 8, 12, 9, 8, 12, 9, 8,
+							9, 8, 12, 8, 8, 9, 8, 8, 12, 9, 8, 12, 9, 8, 9, 8,
+							12, 8, 8, 9, 8, 8, 8, 12, 8, 8, 9, 8, 8},},
+
+			{{3, 7, 4, 11, 11, 12, 6, 11, 7, 3, 9, 4, 10, 12, 16, 7, 5, 9, 8, 1,
+					9, 8, 10, 9, 7, 16, 11, 7, 9, 10, 10, 12, 6, 6, 10, 16, 8,
+					8, 8, 7, 4, 12, 12, 12, 6, 9, 8, 1, 9, 8, 9, 8, 4, 7, 11, 4,
+					7, 9, 8, 11, 7, 16, 11},
+					{12, 9, 4, 11, 7, 4, 11, 9, 10, 5, 11, 11, 3, 7, 7, 8, 3,
+							11, 3, 6, 6, 6, 9, 8, 1, 9, 8, 6, 6, 7, 4, 11, 6,
+							11, 8, 8, 8, 8, 12, 6, 9, 4, 12, 7, 16, 7, 12, 12,
+							11, 9, 10, 12, 11, 8, 4, 9, 9, 9, 10, 7, 4, 11, 10},
+					{8, 11, 10, 7, 9, 11, 12, 8, 8, 7, 11, 3, 8, 8, 11, 16, 11,
+							6, 7, 4, 11, 6, 16, 12, 5, 12, 7, 4, 10, 10, 8, 8,
+							8, 6, 6, 6, 7, 10, 9, 10, 10, 6, 10, 10, 9, 7, 16,
+							4, 10, 9, 10, 8, 10, 11, 10, 5, 9, 5, 4, 9, 10, 10,
+							10},
+					{8, 8, 7, 9, 10, 6, 11, 11, 11, 9, 3, 12, 7, 12, 7, 16, 9,
+							4, 10, 6, 8, 8, 4, 7, 9, 16, 12, 6, 6, 8, 8, 8, 7,
+							16, 4, 8, 10, 9, 8, 10, 3, 5, 12, 8, 4, 9, 11, 4, 9,
+							10, 8, 7, 11, 11, 6, 10, 12, 16, 3, 10, 10, 11, 12},
+					{10, 3, 16, 8, 11, 8, 10, 7, 9, 6, 8, 8, 7, 3, 10, 9, 4, 8,
+							8, 12, 5, 4, 10, 8, 10, 4, 12, 16, 9, 12, 8, 10, 5,
+							10, 6, 11, 8, 16, 8, 8, 8, 5, 5, 7, 11, 4, 9, 11,
+							11, 16, 8, 12, 6, 12, 3, 7, 5, 4, 8, 11, 11, 11,
+							12},},
+
+			{{3, 7, 4, 16, 11, 12, 6, 11, 7, 7, 9, 4, 10, 12, 7, 7, 5, 9, 8, 1,
+					9, 8, 10, 9, 7, 11, 11, 7, 9, 10, 10, 12, 6, 6, 10, 10, 8,
+					8, 8, 7, 4, 12, 12, 12, 6, 9, 8, 1, 9, 8, 9, 8, 4, 7, 11, 9,
+					7, 9, 8, 11, 7, 11, 11},
+					{12, 9, 4, 11, 7, 4, 16, 9, 10, 5, 11, 11, 3, 7, 7, 8, 16,
+							11, 11, 6, 6, 6, 8, 10, 3, 12, 7, 6, 11, 10, 10, 10,
+							9, 11, 8, 8, 8, 9, 12, 6, 9, 4, 12, 7, 7, 7, 12, 16,
+							11, 9, 10, 12, 11, 8, 9, 9, 9, 9, 10, 7, 4, 11, 10},
+					{8, 11, 10, 7, 9, 11, 12, 8, 8, 7, 11, 3, 8, 8, 11, 11, 11,
+							6, 7, 4, 16, 6, 8, 12, 5, 12, 7, 4, 10, 16, 8, 8, 8,
+							6, 6, 6, 3, 10, 9, 10, 16, 6, 10, 10, 9, 7, 7, 4,
+							10, 9, 10, 8, 9, 9, 10, 5, 9, 5, 4, 9, 10, 10, 10},
+					{8, 8, 7, 9, 10, 6, 11, 11, 11, 9, 3, 12, 7, 12, 16, 7, 9,
+							4, 10, 6, 8, 8, 4, 7, 9, 11, 12, 6, 6, 8, 8, 8, 7,
+							16, 4, 8, 10, 9, 8, 10, 3, 5, 12, 8, 4, 9, 16, 4, 9,
+							10, 9, 7, 9, 9, 6, 10, 12, 11, 3, 10, 16, 11, 12},
+					{10, 3, 8, 8, 16, 8, 10, 7, 9, 6, 8, 8, 7, 3, 10, 9, 4, 8,
+							8, 16, 5, 4, 10, 8, 10, 8, 3, 10, 9, 12, 9, 10, 16,
+							10, 6, 11, 8, 11, 5, 8, 8, 5, 5, 7, 11, 8, 9, 11,
+							11, 8, 8, 12, 6, 12, 3, 12, 5, 4, 9, 11, 11, 11,
+							12},},
+
+			{{3, 7, 4, 6, 11, 12, 6, 11, 7, 7, 9, 4, 10, 12, 7, 7, 5, 9, 8, 1,
+					9, 8, 10, 9, 7, 11, 11, 7, 9, 10, 10, 12, 6, 6, 10, 6, 8, 8,
+					8, 7, 4, 12, 12, 12, 6, 9, 8, 1, 9, 8, 9, 8, 4, 7, 11, 6, 7,
+					9, 8, 11, 7, 11, 11},
+					{12, 9, 4, 11, 7, 4, 11, 9, 10, 5, 11, 11, 3, 7, 7, 8, 11,
+							11, 11, 6, 6, 6, 6, 10, 12, 12, 7, 6, 11, 10, 10,
+							10, 9, 11, 8, 8, 8, 6, 12, 6, 9, 4, 12, 7, 7, 7, 12,
+							12, 11, 9, 10, 12, 11, 8, 6, 9, 9, 9, 10, 7, 4, 11,
+							10},
+					{8, 11, 10, 7, 9, 11, 12, 8, 8, 7, 11, 3, 8, 8, 11, 11, 11,
+							6, 7, 4, 11, 6, 6, 12, 5, 12, 7, 4, 10, 10, 8, 8, 8,
+							6, 6, 6, 7, 10, 9, 10, 10, 6, 10, 10, 9, 7, 7, 4,
+							10, 9, 10, 8, 10, 6, 10, 5, 9, 5, 4, 9, 10, 10, 10},
+					{8, 8, 7, 9, 10, 6, 11, 11, 11, 9, 3, 12, 7, 12, 7, 7, 9, 4,
+							10, 6, 16, 8, 4, 7, 9, 11, 12, 6, 6, 8, 16, 8, 7, 6,
+							4, 8, 10, 9, 8, 10, 3, 5, 12, 8, 4, 9, 11, 4, 9, 10,
+							6, 7, 11, 11, 6, 10, 16, 11, 3, 10, 10, 11, 12},
+					{10, 3, 8, 8, 6, 8, 10, 7, 9, 6, 8, 8, 7, 3, 10, 9, 4, 8, 8,
+							12, 5, 4, 10, 16, 10, 4, 12, 10, 9, 12, 6, 10, 5,
+							10, 6, 11, 8, 11, 6, 8, 8, 5, 5, 7, 11, 4, 9, 11,
+							11, 16, 8, 12, 6, 12, 3, 12, 5, 4, 6, 11, 11, 11,
+							12},},};
 
 	/**
 	 * Genetic algorithm chromosome representation.
@@ -621,69 +782,83 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		/* Handle each virtual separate. */
-		for (int reel[] : ORIGINAL_STRIPS) {
-			Chromosome original = Chromosome.initializeOriginal(reel,
-					CHUNKS_SIZE, HISTOGRAM_THRESHOLD);
-			// System.err.println(original);
+		for (int reels[][] : ORIGINAL_STRIPS) {
+			System.out.println("=== NEW RELLS ===");
+			System.out.println();
 
-			List<Chromosome> population = initializeRandomPopulation(reel,
-					original, POPULATION_SIZE);
-			// System.err.println(population);
+			for (int reel[] : reels) {
+				Chromosome original = Chromosome.initializeOriginal(reel,
+						CHUNKS_SIZE, HISTOGRAM_THRESHOLD);
+				// System.err.println(original);
 
-			/*
-			 * Do an evolutionary optimization. Each loop only a single genetic
-			 * algorithm child is created that is why population size should be
-			 * multiplied by the number of required generations.
-			 */
-			for (long g = EVOLUTION_EPOCHS * population.size(); g > 0; g--) {
-				/* Select parents and a child slot. */
-				Chromosome familiy[] = selection(population);
-
-				/* Stronger parent is the first one. */
-				Chromosome parent1 = (familiy[0].fitness() > familiy[1]
-						.fitness()) ? familiy[0] : familiy[1];
-				Chromosome parent2 = (familiy[0].fitness() < familiy[1]
-						.fitness()) ? familiy[0] : familiy[1];
-
-				/* Crossover between parents. */
-				Chromosome child = parent1.crossover(parent2);
+				List<Chromosome> population = initializeRandomPopulation(reel,
+						original, POPULATION_SIZE);
+				// System.err.println(population);
 
 				/*
-				 * Mutation done according to original chunks available values.
+				 * Do an evolutionary optimization. Each loop only a single
+				 * genetic algorithm child is created that is why population
+				 * size should be multiplied by the number of required
+				 * generations.
 				 */
-				child.mutate(original, MUTATION_RATE);
+				for (long g = EVOLUTION_EPOCHS
+						* population.size(); g > 0; g--) {
+					/* Select parents and a child slot. */
+					Chromosome familiy[] = selection(population);
 
-				/*
-				 * Evaluate fitness value of the newly created child.
-				 * 
-				 * Distance is taken with a negative sign because if the
-				 * candidate solution is farther away from the original the
-				 * solution is worse.
-				 * 
-				 * With such an evaluation of the fitness, all values will be
-				 * negative, but the smallest distance gives the best-found
-				 * candidate solution.
-				 */
-				child.sampling(original);
-				child.fitness(-child.distance(original));
+					/* Stronger parent is the first one. */
+					Chromosome parent1 = (familiy[0].fitness() > familiy[1]
+							.fitness()) ? familiy[0] : familiy[1];
+					Chromosome parent2 = (familiy[0].fitness() < familiy[1]
+							.fitness()) ? familiy[0] : familiy[1];
 
-				/* The new generation replaces the old generation. */
-				if(child.fitness() > familiy[2].fitness()) {
-					population.remove(familiy[2]);
-					population.add(child);
+					/* Crossover between parents. */
+					Chromosome child = parent1.crossover(parent2);
+
+					/*
+					 * Mutation done according to original chunks available
+					 * values.
+					 */
+					child.mutate(original, MUTATION_RATE);
+
+					/*
+					 * Evaluate fitness value of the newly created child.
+					 * 
+					 * Distance is taken with a negative sign because if the
+					 * candidate solution is farther away from the original the
+					 * solution is worse.
+					 * 
+					 * With such an evaluation of the fitness, all values will
+					 * be negative, but the smallest distance gives the
+					 * best-found candidate solution.
+					 */
+					child.sampling(original);
+					child.fitness(-child.distance(original));
+
+					/* The new generation replaces the old generation. */
+					if (child.fitness() > familiy[2].fitness()) {
+						population.remove(familiy[2]);
+						population.add(child);
+					}
+
+					/* Report optimization progress at each generation. */
+					if (g % population.size() == 0) {
+						System.err.print(g);
+						System.err.print("\t");
+						System.err.println(bestFound(population).fitness());
+					}
 				}
 
-				/* Report optimization progress at each generation. */
-				if (g % population.size() == 0) {
-					System.err.println(bestFound(population).fitness());
-				}
+				/* Print the original. */
+				System.out.println("=== ORIGIANL ===");
+				System.out.println(original);
+				System.out.println();
+
+				/* Print the best-found solution. */
+				System.out.println("=== BEST FOUND ===");
+				System.out.println(bestFound(population));
+				System.out.println();
 			}
-
-			/* Print the original. */
-			System.out.println(original);
-
-			/* Print the best-found solution. */
-			System.out.println(bestFound(population));
 		}
 	}
 
