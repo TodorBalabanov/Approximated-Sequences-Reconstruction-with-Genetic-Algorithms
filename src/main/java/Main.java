@@ -49,7 +49,7 @@ public class Main {
 	/**
 	 * How many genetic algorithm generations to be evolved.
 	 */
-	private static final long EVOLUTION_EPOCHS = 100;
+	private static final long EVOLUTION_EPOCHS = 10000;
 
 	/**
 	 * Original sequences which should be reconstructed.
@@ -377,11 +377,10 @@ public class Main {
 			List<List<Integer>> chunks = new ArrayList<List<Integer>>();
 			for (List<Integer> chunk : histogram.keySet()) {
 				/*
-				 * The count is reduced in order sequences for chromosomes to be
+				 * The count can be reduced with least probable value plus one in order sequences for chromosomes to be
 				 * shorter.
 				 */
-				for (int count = histogram.get(chunk) - leastProbable
-						+ 1; count > 0; count--) {
+				for (int count = histogram.get(chunk); count > 0; count--) {
 					chunks.add(chunk);
 				}
 			}
@@ -407,7 +406,7 @@ public class Main {
 				}
 			}
 			minLength = uniqueValues.size();
-			maxLength = chunksTotalLength;
+			maxLength = chunksTotalLength / uniqueChunks.size();
 			// System.err.println(uniqueValues);
 
 			return result;
