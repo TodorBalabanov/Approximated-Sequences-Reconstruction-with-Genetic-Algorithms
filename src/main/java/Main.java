@@ -377,8 +377,8 @@ public class Main {
 			List<List<Integer>> chunks = new ArrayList<List<Integer>>();
 			for (List<Integer> chunk : histogram.keySet()) {
 				/*
-				 * The count can be reduced with least probable value plus one in order sequences for chromosomes to be
-				 * shorter.
+				 * The count can be reduced with least probable value plus one
+				 * in order sequences for chromosomes to be shorter.
 				 */
 				for (int count = histogram.get(chunk); count > 0; count--) {
 					chunks.add(chunk);
@@ -550,6 +550,28 @@ public class Main {
 		}
 
 		/**
+		 * Calculate Euclidean distance between chunks.
+		 * 
+		 * @param first
+		 *            First chunk.
+		 * @param second
+		 *            Second chunk.
+		 * 
+		 * @return Distance calculated.
+		 */
+		private double euclidean(List<Integer> first, List<Integer> second) {
+			int chunkSize = Math.min(first.size(), second.size());
+
+			double distance = 0;
+			for (int j = 0; j < chunkSize; j++) {
+				distance += (first.get(j) - second.get(j))
+						* (first.get(j) - second.get(j));
+			}
+
+			return Math.sqrt(distance);
+		}
+
+		/**
 		 * Calculates the distance between two chromosomes.
 		 * 
 		 * Weighted Euclidean distance between lists of chunks is calculated,
@@ -579,15 +601,8 @@ public class Main {
 							"Chunks should be with equal sizes!");
 				}
 
-				double distance = 0;
-				int chunkSize = Math.min(first.size(), second.size());
-				for (int j = 0; j < chunkSize; j++) {
-					distance += (first.get(j) - second.get(j))
-							* (first.get(j) - second.get(j));
-				}
-
 				/* Square root as it is in the Euclidean norm. */
-				result += Math.sqrt(distance);
+				result += euclidean(first, second);
 			}
 
 			/* Do an average. */
@@ -782,10 +797,13 @@ public class Main {
 	public static void main(String[] args) {
 		/* Handle each virtual separate. */
 		for (int reels[][] : ORIGINAL_STRIPS) {
+			System.err.println(reels);
 			System.out.println("=== NEW RELLS ===");
 			System.out.println();
 
+
 			for (int reel[] : reels) {
+				System.err.println(reel);
 				Chromosome original = Chromosome.initializeOriginal(reel,
 						CHUNKS_SIZE, HISTOGRAM_THRESHOLD);
 				// System.err.println(original);
