@@ -568,7 +568,31 @@ public class Main {
 						* (first.get(j) - second.get(j));
 			}
 
+			/* Square root as it is in the Euclidean norm. */
 			return Math.sqrt(distance);
+		}
+
+		private double levenshtein(List<Integer> first, List<Integer> second) {
+			int[][] matrix = new int[first.size() + 1][second.size() + 1];
+ 
+			for (int i = 0; i <= first.size(); i++) {			
+				for (int j = 0; j <= second.size(); j++) {
+					if (i == 0) {
+						matrix[i][j] = j;
+					}
+					else if (j == 0) {
+						matrix[i][j] = i;
+					} else {
+						int cost = (first.get(i - 1) == second.get(j - 1)) ? 0 : 1;
+						int a = matrix[i - 1][j - 1] + cost; 
+						int b = matrix[i - 1][j] + 1; 
+						int c = matrix[i][j - 1] + 1;
+						matrix[i][j] = (a < b) ? ((a<c)?a:c) : ((b<c)?b:c);
+					}
+				}
+			}
+ 
+			return matrix[first.size()][second.size()];
 		}
 
 		/**
@@ -601,8 +625,8 @@ public class Main {
 							"Chunks should be with equal sizes!");
 				}
 
-				/* Square root as it is in the Euclidean norm. */
-				result += euclidean(first, second);
+				// result += euclidean(first, second);
+				result += levenshtein(first, second);
 			}
 
 			/* Do an average. */
