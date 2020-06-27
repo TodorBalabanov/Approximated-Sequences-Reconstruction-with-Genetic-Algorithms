@@ -572,26 +572,41 @@ public class Main {
 			return Math.sqrt(distance);
 		}
 
+		/**
+		 * Calculate Levenshtein distance between chunks.
+		 * 
+		 * @param first
+		 *            First chunk.
+		 * @param second
+		 *            Second chunk.
+		 * 
+		 * @return Distance calculated.
+		 */
 		private double levenshtein(List<Integer> first, List<Integer> second) {
 			int[][] matrix = new int[first.size() + 1][second.size() + 1];
- 
-			for (int i = 0; i <= first.size(); i++) {			
+
+			for (int i = 0; i <= first.size(); i++) {
 				for (int j = 0; j <= second.size(); j++) {
 					if (i == 0) {
 						matrix[i][j] = j;
-					}
-					else if (j == 0) {
+					} else if (j == 0) {
 						matrix[i][j] = i;
 					} else {
-						int cost = (first.get(i - 1) == second.get(j - 1)) ? 0 : 1;
-						int a = matrix[i - 1][j - 1] + cost; 
-						int b = matrix[i - 1][j] + 1; 
+						int cost = (first.get(i - 1) == second.get(j - 1))
+								? 0
+								: 1;
+
+						int a = matrix[i - 1][j - 1] + cost;
+						int b = matrix[i - 1][j] + 1;
 						int c = matrix[i][j - 1] + 1;
-						matrix[i][j] = (a < b) ? ((a<c)?a:c) : ((b<c)?b:c);
+
+						matrix[i][j] = (a < b)
+								? ((a < c) ? a : c)
+								: ((b < c) ? b : c);
 					}
 				}
 			}
- 
+
 			return matrix[first.size()][second.size()];
 		}
 
@@ -821,13 +836,12 @@ public class Main {
 	public static void main(String[] args) {
 		/* Handle each virtual separate. */
 		for (int reels[][] : ORIGINAL_STRIPS) {
-			System.err.println(reels);
-			System.out.println("=== NEW RELLS ===");
+			System.err.println("=== RELLS ===");
+			System.out.println("=== RELLS ===");
 			System.out.println();
 
-
 			for (int reel[] : reels) {
-				System.err.println(reel);
+				System.err.println("=== OPTIMIZATION START ===");
 				Chromosome original = Chromosome.initializeOriginal(reel,
 						CHUNKS_SIZE, HISTOGRAM_THRESHOLD);
 				// System.err.println(original);
@@ -899,6 +913,8 @@ public class Main {
 				System.out.println("=== BEST FOUND ===");
 				System.out.println(bestFound(population));
 				System.out.println();
+
+				System.err.println("=== OPTIMIZATION END ===");
 			}
 		}
 	}
