@@ -406,8 +406,8 @@ class Chromosome {
 						"Chunks should be with equal sizes!");
 			}
 
-			// result += euclidean(first, second);
-			result += levenshtein(first, second);
+			result += euclidean(first, second);
+			// result += levenshtein(first, second);
 		}
 
 		/* Do an average. */

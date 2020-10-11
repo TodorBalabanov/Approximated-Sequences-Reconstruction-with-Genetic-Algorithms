@@ -28,10 +28,12 @@ public class Main {
 	 * it is a probability it has values from 0 to 1.
 	 */
 	private static final double MUTATION_RATE = 0.005;
+
 	/**
 	 * Number of generations to be created as depth of the recursion.
 	 */
 	private static final int RECURSION_DEPTH = 7;
+	
 	/**
 	 * The histogram threshold is the minimum number of the appearance of the
 	 * less probable unique chunk. When the size of the sequence is unknown by
@@ -294,15 +296,13 @@ public class Main {
 	 * 
 	 * @param depth
 	 *            Level of recursive descent (zero is the bottom).
-	 * @param reel
-	 *            Virtual reel as numbers array.
 	 * 
 	 * @param original
 	 *            The chromosome of the original sequence.
 	 * 
 	 * @return The best-found solution.
 	 */
-	private static Chromosome recursiveOptimalSolution(int depth, int[] reel,
+	private static Chromosome recursiveOptimalSolution(int depth,
 			Chromosome original) {
 		/*
 		 * Recursive depth is identical to the population size. If the recursive
@@ -313,11 +313,19 @@ public class Main {
 		}
 
 		/*
-		 * If the recursive level is one there will be only one individual in
-		 * the population and it will be returned.
+		 * If the recursive level is one there will be only one random
+		 * individual and it will be returned.
 		 */
 		if (depth == 1) {
-			return initializeRandomPopulation(reel, original, 1).get(0);
+			/* Create a random solution. */
+			Chromosome child = Chromosome.initializeRandom(original);
+			
+			/* Evaluate the random solution.. */
+			child.sampling(original);
+			child.fitness(-child.distance(original));
+			
+			/* Return newly created random solution. */
+			return child;
 		}
 
 		/*
@@ -326,7 +334,7 @@ public class Main {
 		 */
 		List<Chromosome> population = new ArrayList<Chromosome>(depth);
 		for (int i = 0; i < depth; i++) {
-			population.add(recursiveOptimalSolution(depth - 1, reel, original));
+			population.add(recursiveOptimalSolution(depth - 1, original));
 		}
 
 		/*
@@ -334,7 +342,7 @@ public class Main {
 		 * recursive level population.
 		 */
 		boolean stop = false;
-		Chromosome result = population.get(0);
+		Chromosome result = bestFound(population);
 		while (stop == false) {
 			stop = true;
 
@@ -376,12 +384,12 @@ public class Main {
 	private static void hierarchicalGeneticAlgorithm(int[] reel) {
 		System.err.println("=== OPTIMIZATION START ===");
 
+		/* Creation of the chromosome with chunks from the original reel. */
 		Chromosome original = Chromosome.initializeOriginal(reel, CHUNKS_SIZE,
 				HISTOGRAM_THRESHOLD);
 
 		/* Get a recursive optimal solution. */
-		Chromosome bestFound = recursiveOptimalSolution(RECURSION_DEPTH, reel,
-				original);
+		Chromosome best = recursiveOptimalSolution(RECURSION_DEPTH, original);
 
 		/* Print the original. */
 		System.out.println("=== ORIGIANL ===");
@@ -390,7 +398,7 @@ public class Main {
 
 		/* Print the best-found solution. */
 		System.out.println("=== BEST FOUND ===");
-		System.out.println(bestFound);
+		System.out.println(best);
 		System.out.println();
 
 		System.err.println("=== OPTIMIZATION END ===");
@@ -403,7 +411,7 @@ public class Main {
 	 *            Command line arguments.
 	 */
 	public static void main(String[] args) {
-		/* Handle each virtual separate. */
+		/* Handle each virtual reel separate. */
 		for (int reels[][] : ORIGINAL_STRIPS) {
 			System.err.println("=== RELLS ===");
 			System.out.println("=== RELLS ===");
