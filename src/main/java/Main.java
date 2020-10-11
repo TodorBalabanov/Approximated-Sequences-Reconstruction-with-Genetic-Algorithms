@@ -28,7 +28,10 @@ public class Main {
 	 * it is a probability it has values from 0 to 1.
 	 */
 	private static final double MUTATION_RATE = 0.005;
-
+	/**
+	 * Number of generations to be created as depth of the recursion.
+	 */
+	private static final int RECURSION_DEPTH = 7;
 	/**
 	 * The histogram threshold is the minimum number of the appearance of the
 	 * less probable unique chunk. When the size of the sequence is unknown by
@@ -125,6 +128,35 @@ public class Main {
 	}
 
 	/**
+	 * Finds the best-found solution.
+	 * 
+	 * @param population
+	 *            Current generation as population of individuals.
+	 * 
+	 * @return A reference to the best-found solution into the population.
+	 */
+	private static Chromosome bestFound(List<Chromosome> population) {
+		/*
+		 * There is no way to have a best-found solution if the population is
+		 * empty.
+		 */
+		if (population.size() <= 0) {
+			throw new RuntimeException(
+					"Population size should be greater than zero!");
+		}
+
+		/* The best-found solution is the one with the highest fitness value. */
+		Chromosome result = population.get(0);
+		for (Chromosome candidate : population) {
+			if (candidate.fitness() > result.fitness()) {
+				result = candidate;
+			}
+		}
+
+		return result;
+	}
+
+	/**
 	 * Do selection of parents and a child place into the population.
 	 * 
 	 * @param population
@@ -174,27 +206,6 @@ public class Main {
 		}
 
 		return familiy;
-	}
-
-	/**
-	 * Finds the best-found solution.
-	 * 
-	 * @param population
-	 *            Current generation as population of individuals.
-	 * 
-	 * @return A reference to the best-found solution into the population.
-	 */
-	private static Chromosome bestFound(List<Chromosome> population) {
-		Chromosome result = population.get(0);
-
-		/* The best-found solution is the one with the highest fitness value. */
-		for (Chromosome candidate : population) {
-			if (candidate.fitness() > result.fitness()) {
-				result = candidate;
-			}
-		}
-
-		return result;
 	}
 
 	/**
@@ -279,12 +290,110 @@ public class Main {
 	}
 
 	/**
+	 * A recursive descent form of genetic algorithm.
+	 * 
+	 * @param depth
+	 *            Level of recursive descent (zero is the bottom).
+	 * @param reel
+	 *            Virtual reel as numbers array.
+	 * 
+	 * @param original
+	 *            The chromosome of the original sequence.
+	 * 
+	 * @return The best-found solution.
+	 */
+	private static Chromosome recursiveOptimalSolution(int depth, int[] reel,
+			Chromosome original) {
+		/*
+		 * Recursive depth is identical to the population size. If the recursive
+		 * level is below or equal to zero, there is an best-found solution.
+		 */
+		if (depth <= 0) {
+			return null;
+		}
+
+		/*
+		 * If the recursive level is one there will be only one individual in
+		 * the population and it will be returned.
+		 */
+		if (depth == 1) {
+			return initializeRandomPopulation(reel, original, 1).get(0);
+		}
+
+		/*
+		 * Build the local population on the specified recursive level according
+		 * to best-found individuals from the sub-levels.
+		 */
+		List<Chromosome> population = new ArrayList<Chromosome>(depth);
+		for (int i = 0; i < depth; i++) {
+			population.add(recursiveOptimalSolution(depth - 1, reel, original));
+		}
+
+		/*
+		 * Apply local search until better solutions are found in the local
+		 * recursive level population.
+		 */
+		boolean stop = false;
+		Chromosome result = population.get(0);
+		while (stop == false) {
+			stop = true;
+
+			/* Crossover and mutation with each other. */
+			for (Chromosome first : population) {
+				for (Chromosome second : population) {
+					/* Crossover. */
+					Chromosome child = first.crossover(second);
+
+					/* Mutation. */
+					child.mutate(original, MUTATION_RATE);
+
+					/* Evaluation. */
+					child.sampling(original);
+					child.fitness(-child.distance(original));
+
+					/* Selection. */
+					if (child.fitness() > result.fitness()) {
+						result = child;
+						stop = false;
+					}
+				}
+			}
+		}
+
+		/*
+		 * Return the best-found solution from the local search on the current
+		 * recursive node.
+		 */
+		return result;
+	}
+
+	/**
 	 * A hierarchical form of genetic algorithm.
 	 * 
 	 * @param reel
 	 *            Single reel as an array of numbers.
 	 */
 	private static void hierarchicalGeneticAlgorithm(int[] reel) {
+		System.err.println("=== OPTIMIZATION START ===");
+
+		Chromosome original = Chromosome.initializeOriginal(reel, CHUNKS_SIZE,
+				HISTOGRAM_THRESHOLD);
+
+		/* Get a recursive optimal solution. */
+		Chromosome bestFound = recursiveOptimalSolution(RECURSION_DEPTH, reel,
+				original);
+
+		/* Print the original. */
+		System.out.println("=== ORIGIANL ===");
+		System.out.println(original);
+		System.out.println();
+
+		/* Print the best-found solution. */
+		System.out.println("=== BEST FOUND ===");
+		System.out.println(bestFound);
+		System.out.println();
+
+		System.err.println("=== OPTIMIZATION END ===");
 	}
 
 	/**
@@ -301,8 +410,8 @@ public class Main {
 			System.out.println();
 
 			for (int reel[] : reels) {
-				simpleGeneticAlgorithm(reel);
-				// hierarchicalGeneticAlgorithm(reel);
+				// simpleGeneticAlgorithm(reel);
+				hierarchicalGeneticAlgorithm(reel);
 			}
 		}
 	}
